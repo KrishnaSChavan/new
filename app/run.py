@@ -3,7 +3,28 @@ from random import randrange
 from fastapi import FastAPI,Response,status,HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import time
+
 app = FastAPI()
+class Post(BaseModel):
+    title :str
+    content :str 
+    published : bool = True
+
+
+while True:
+    
+    try:
+        conn = psycopg2.connect(host = 'localhost',database='fastapi1',user='abc',password='-',cursor_factory=RealDictCursor)#(host, databatse, user, password,RealDictCursor for obtaining colums of table)
+        cursor = conn.cursor()
+        print ("Connected")
+        break
+    except Exception as e:
+        print ("Failed to connect")
+        print(e)
+        time.sleep(5)
 
 my_posts = [{"title": "title of post 1", "content": "content of post 1","id":1},{"title": "title of post 1", "content": "content of post 1","id":3}]
 
@@ -17,12 +38,7 @@ def find_index(id):
         if p["id"] == id:
             return i
 
-class Post(BaseModel):
-    title :str
-    content :str
-    location : Optional[str] = None
-    published : bool = True
-    rating : Optional[int] = None
+
 
 @app.get("/")
 def login():
@@ -32,7 +48,10 @@ def login():
 @app.get("/post")
 
 def get_post():
-    return {'data': my_posts}
+    cursor.execute("""SELECT * FROM post """)
+    posts = cursor.fetchall()
+    print(posts)
+    return {'data': posts}
 
 
 @app.post("/posts",status_code=status.HTTP_201_CREATED)
