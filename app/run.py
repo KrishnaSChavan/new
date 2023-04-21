@@ -56,33 +56,41 @@ def get_post():
 
 @app.post("/posts",status_code=status.HTTP_201_CREATED)
 def create(post : Post):
-    post_dict = post.dict()
-    post_dict['id'] = randrange(0,9999999)
-    my_posts.append(post_dict)
-    return {"message": post_dict}
+    cursor.execute("""INSERT INTO post (title,content,published) VALUES (%s,%s,%s) RETURNING *""",(post.title,post.content,post.published))
+    new_post = cursor.fetchone()
+    conn.commit()
+    return {"message": new_post}
 
 @app.get('/posts/latest')
 def get_latest():
     post = my_posts[len(my_posts)-1]
     return {"latest post is": post}
 
-
 @app.put('/posts/{id}')
 def put_post(id:int,post:Post):
-    index = find_index(id)
-    if index == None:
+    cursor.execute("""UPDATE post 
+                      SET title = %s ,
+                          content = %s ,
+                          published = %s 
+                          WHERE id = %s
+                          RETURNING *
+                       """,
+                       (post.title,post.content,post.published,str(id))
+                    )
+    updated = cursor.fetchone()
+    conn.commit()
+
+    if updated == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'id {id} not found')
         #return {"post": post}
-    post_dict = post.dict()
-    post_dict['id'] = id
-    my_posts[index] = post_dict
+    
     return {"post": post}
     
 
 @app.get("/posts/{id}")
 def get_post(id:int, response : Response):
-    print(int(id))
-    post = find_post(id)
+    cursor.execute(""" SELECT * FROM post WHERE id = %s""",(str(id), ))
+    post = cursor.fetchone()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'id {id} not found')
     return {"id": post}
@@ -91,10 +99,13 @@ def get_post(id:int, response : Response):
 
 @app.delete('/posts/{id}',status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id:int):
-    index = find_index(id)
-    if index == None:
+    cursor.execute("""DELETE FROM post WHERE id = %s RETURNING *""",(str(id),))
+
+    deleated = cursor.fetchone()
+    conn.commit()
+    if deleated == None:
 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'id {id} not found')
-    my_posts.pop(index)
+    
     
     return Response(status_code=status.HTTP_204_NO_CONTENT)
