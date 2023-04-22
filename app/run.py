@@ -1,17 +1,21 @@
 from typing import Optional
 from random import randrange
-from fastapi import FastAPI,Response,status,HTTPException
+from fastapi import FastAPI,Response,status,HTTPException,Depends
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+from app.schemas import Post
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
+from . import models
+from app.database import engine,get_db
+from sqlalchemy.orm import Session 
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-class Post(BaseModel):
-    title :str
-    content :str 
-    published : bool = True
+
+
+
 
 
 while True:
@@ -25,6 +29,19 @@ while True:
         print ("Failed to connect")
         print(e)
         time.sleep(5)
+
+
+try:
+    
+    cursor.execute("""ALTER TABLE IF EXISTS public.post_alch
+    ADD COLUMN \"time\" time with time zone DEFAULT NOW() RETURNING * """)
+    conn.commit()
+except Exception as ex:
+        print ("")
+    
+
+conn.commit()
+
 
 my_posts = [{"title": "title of post 1", "content": "content of post 1","id":1},{"title": "title of post 1", "content": "content of post 1","id":3}]
 
@@ -45,20 +62,33 @@ def login():
     return {"Hello": "World"}
 
 
+
+@app.get('/sqlalkk')
+def test_p(db: Session = Depends(get_db)):
+    x = db.query(models.Post).all()
+    print(x)
+    return {"Hello": x}
+
 @app.get("/post")
 
 def get_post():
-    cursor.execute("""SELECT * FROM post """)
-    posts = cursor.fetchall()
-    print(posts)
-    return {'data': posts}
+    try:
+        cursor.execute("""SELECT * FROM post """)
+        post = cursor.fetchall()
+        
+    except Exception as e:
+        print("Exception",e)
+
+    return {'data': post}
 
 
 @app.post("/posts",status_code=status.HTTP_201_CREATED)
-def create(post : Post):
-    cursor.execute("""INSERT INTO post (title,content,published) VALUES (%s,%s,%s) RETURNING *""",(post.title,post.content,post.published))
-    new_post = cursor.fetchone()
-    conn.commit()
+def create(post : Post,db:Session = Depends(get_db)):
+    #cursor.execute("""INSERT INTO post (title,content,published) VALUES (%s,%s,%s) RETURNING *""",(post.title,post.content,post.published))
+    #new_post = cursor.fetchone()
+    #conn.commit()
+    new_post = models.Post(title=post.title,content=post.content,published=post.published)
+    print(new_post)
     return {"message": new_post}
 
 @app.get('/posts/latest')
@@ -85,7 +115,7 @@ def put_post(id:int,post:Post):
         #return {"post": post}
     
     return {"post": post}
-    
+
 
 @app.get("/posts/{id}")
 def get_post(id:int, response : Response):
