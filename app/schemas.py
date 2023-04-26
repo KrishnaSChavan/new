@@ -42,3 +42,5 @@ class userpass(BaseModel):
 class userlogin(BaseModel):
     email : EmailStr
     password : str
+    class Config:
+        orm_mode = True
