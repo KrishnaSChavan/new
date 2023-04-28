@@ -13,10 +13,6 @@ router = APIRouter(
 
 
 
-
-
-
-
 @router.get("/")
 def get_post():
     try:

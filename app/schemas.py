@@ -1,6 +1,6 @@
 from pydantic import BaseModel,EmailStr
 from datetime import datetime
-
+from typing import Optional
 
 
 
@@ -44,3 +44,10 @@ class userlogin(BaseModel):
     password : str
     class Config:
         orm_mode = True
+
+class token(BaseModel):
+    access_token : str
+    token_type : str
+
+class token_data(BaseModel):
+    id : Optional[str]

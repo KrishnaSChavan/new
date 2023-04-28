@@ -1,5 +1,5 @@
 from app.run import conn,cursor
-from .. import models
+from .. import models,auth2
 from fastapi import Response,status,HTTPException,Depends,APIRouter
 from app.schemas import PostCreate,PostResponse
 from app.database import engine,get_db
@@ -21,7 +21,7 @@ def test_p(db: Session = Depends(get_db)):
     return  x
 
 @router.post('/post',status_code=status.HTTP_201_CREATED,response_model= PostResponse)
-def post_s(post:PostCreate,db: Session = Depends(get_db)):
+def post_s(post:PostCreate,db: Session = Depends(get_db),user_id :int = Depends(auth2.get_current_user)):
     new_post = models.Post(**post.dict())
     print(new_post)
     db.add(new_post)
