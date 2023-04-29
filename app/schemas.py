@@ -50,4 +50,4 @@ class token(BaseModel):
     token_type : str
 
 class token_data(BaseModel):
-    id : Optional[str]
+    id : str

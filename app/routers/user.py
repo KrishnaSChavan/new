@@ -24,6 +24,8 @@ def create_user(user:usercreate,db: Session = Depends(get_db)):
 @router.get('/password/{id}',response_model=userpass)
 def passw(id:int,db: Session = Depends(get_db)):
     use = db.query(models.User).filter(models.User.id == id).first()
+    if use is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"user with id:{id} not nound")
     print(use)
     return use
 

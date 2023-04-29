@@ -14,15 +14,16 @@ router = APIRouter(
 
 
 
-@router.get('/',response_model= List[PostResponse])
-def test_p(db: Session = Depends(get_db)):
+@router.get('/',response_model= List[PostResponse]) #List is used to get list of elements in db in form of json
+def test_p(db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
     x = db.query(models.Post).all()
     print(x)
     return  x
 
 @router.post('/post',status_code=status.HTTP_201_CREATED,response_model= PostResponse)
-def post_s(post:PostCreate,db: Session = Depends(get_db),user_id :int = Depends(auth2.get_current_user)):
+def post_s(post:PostCreate,db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
     new_post = models.Post(**post.dict())
+    print(current_user)
     print(new_post)
     db.add(new_post)
     db.commit()
@@ -38,7 +39,7 @@ def post_g(id:int,db: Session = Depends(get_db)):
     return  post
     
 @router.delete('/{id}',status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id:int,db: Session = Depends(get_db)):
+def delete_post(id:int,db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
     post = db.query(models.Post).filter(models.Post.id == id)
 
     if post.first() == None:
@@ -49,7 +50,7 @@ def delete_post(id:int,db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.put('/{id}',response_model=PostResponse)
-def delete_post(post:PostCreate,id:int,db: Session = Depends(get_db)):
+def update_post(post:PostCreate,id:int,db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
     post_q = db.query(models.Post).filter(models.Post.id == id)
 
     pos = post_q.first()
