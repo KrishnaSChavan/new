@@ -9,12 +9,13 @@ class PostBase(BaseModel):
     content :str 
     published : bool = True
 
+
 class PostCreate(PostBase):
     pass
 
 class PostResponse(PostBase):
     id : int
-    
+    owner_id : int
     
     # convert to python dictionary
     class Config:
@@ -24,6 +25,8 @@ class PostResponse(PostBase):
 class usercreate(BaseModel):
     email : EmailStr
     password : str
+    class Config:
+        orm_mode = True
 
 # get email and id
 class userout(BaseModel):

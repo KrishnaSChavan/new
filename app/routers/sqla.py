@@ -22,7 +22,7 @@ def test_p(db: Session = Depends(get_db),current_user:int = Depends(auth2.get_cu
 
 @router.post('/post',status_code=status.HTTP_201_CREATED,response_model= PostResponse)
 def post_s(post:PostCreate,db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
-    new_post = models.Post(**post.dict())
+    new_post = models.Post(owner_id = current_user.id, **post.dict())
     print(current_user)
     print(new_post)
     db.add(new_post)
