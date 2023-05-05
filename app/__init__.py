@@ -2,6 +2,9 @@ import time
 from psycopg2.extras import RealDictCursor
 import psycopg2
 
+
+
+
 while True:
     
     try:
@@ -13,4 +16,5 @@ while True:
         print ("Failed to connect")
         print(e)
         time.sleep(5)
+
 

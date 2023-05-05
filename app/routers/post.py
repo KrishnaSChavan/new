@@ -1,7 +1,7 @@
-from app.run import conn,cursor
+from .. import conn,cursor
 from .. import models
 from fastapi import Response,status,HTTPException,Depends,APIRouter
-from app.schemas import PostCreate,PostResponse
+from app.schemas import PostCreate,PostResponse,usercreate
 from app.database import engine,get_db
 from sqlalchemy.orm import Session
 from typing import Optional,List
@@ -84,3 +84,13 @@ def delete_post(id:int):
 
 
 
+
+@router.post("/user",status_code=status.HTTP_201_CREATED)
+def user_create(user:usercreate,db:Session=Depends(get_db)):
+    
+    new_user  = models.User(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return{"data":new_user}

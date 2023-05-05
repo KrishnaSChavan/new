@@ -1,4 +1,4 @@
-from app.run import conn,cursor
+from .. import conn,cursor
 from .. import models,auth2
 from fastapi import Response,status,HTTPException,Depends,APIRouter
 from app.schemas import PostCreate,PostResponse
@@ -10,7 +10,6 @@ router = APIRouter(
     prefix='/sqlalkk',
     tags=["sqlalkk"]
 )
-
 
 
 
@@ -33,7 +32,7 @@ def post_s(post:PostCreate,db: Session = Depends(get_db),current_user:int = Depe
 @router.get('/{id}',response_model=PostResponse)
 def post_g(id:int,db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
-    print(post)
+
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'id {id} not found')
     return  post
@@ -43,8 +42,13 @@ def delete_post(id:int,db: Session = Depends(get_db),current_user:int = Depends(
     post = db.query(models.Post).filter(models.Post.id == id)
 
     if post.first() == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'post with {id} not found')
 
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'id {id} not found')
+    elif post.first() and models.Post.owner_id is not current_user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'UNAUTHORIZED')
+    
+    
+    
     post.delete(synchronize_session=False)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
