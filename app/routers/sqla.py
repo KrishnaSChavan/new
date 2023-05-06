@@ -1,4 +1,4 @@
-from .. import conn,cursor
+from .. import conn,cursor,openai
 from .. import models,auth2
 from fastapi import Response,status,HTTPException,Depends,APIRouter
 from app.schemas import PostCreate,PostResponse
@@ -17,7 +17,15 @@ router = APIRouter(
 def test_p(db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
     x = db.query(models.Post).all()
     print(x)
-    return  x
+    if current_user != None:
+        return  x
+    return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Unauthorized")
+
+@router.get('/my',response_model= List[PostResponse])
+def get_post(db:Session= Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
+    x = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+
+    return x    
 
 @router.post('/post',status_code=status.HTTP_201_CREATED,response_model= PostResponse)
 def post_s(post:PostCreate,db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
@@ -39,17 +47,21 @@ def post_g(id:int,db: Session = Depends(get_db)):
     
 @router.delete('/{id}',status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id:int,db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
-    post = db.query(models.Post).filter(models.Post.id == id)
+    post_q = db.query(models.Post).filter(models.Post.id == id)
+    post = post_q.first()
 
-    if post.first() == None:
+    
+    if post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'post with {id} not found')
 
-    elif post.first() and models.Post.owner_id is not current_user.id:
+    elif  post.owner_id is not int(current_user.id):
+        print(post.owner_id)
+        print(current_user.id)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'UNAUTHORIZED')
     
     
     
-    post.delete(synchronize_session=False)
+    post_q.delete(synchronize_session=False)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -60,7 +72,25 @@ def update_post(post:PostCreate,id:int,db: Session = Depends(get_db),current_use
     pos = post_q.first()
     if pos == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'id {id} not found')
+    elif  pos.owner_id != int(current_user.id):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail=f'UNAUTHORIZED')
     post_q.update(post.dict())
     db.commit()
 
     return post_q.first()
+
+
+@router.post('/open')
+def open(prompt:str):
+    response = openai.Completion.create(
+    engine="davinci",
+    prompt=prompt,
+    max_tokens=100,
+    n=1,
+    stop=None
+)
+
+    # Extract the generated text from the response
+    generated_text = response.choices[0].text.strip()
+
+    return {"generated_text": generated_text}

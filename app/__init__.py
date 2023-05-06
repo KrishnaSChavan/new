@@ -2,6 +2,7 @@ import time
 from psycopg2.extras import RealDictCursor
 import psycopg2
 
+import openai
 
 
 
@@ -18,3 +19,4 @@ while True:
         time.sleep(5)
 
 
+openai.api_key = "sk-14Dv7w1y1STn9mU26IgGtT3BlbkFJ52Yrx01kfhQWT15ksLUrk"
