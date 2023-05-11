@@ -30,7 +30,9 @@ class PostCreate(PostBase):
 class PostResponse(PostBase):
     id : int
     owner_id : int
+    time : datetime
     owner : userout
+    
     # convert to python dictionary
     class Config:
         orm_mode = True

@@ -6,20 +6,18 @@ from app.database import engine,get_db
 from sqlalchemy.orm import Session
 from typing import Optional,List
 
+
 router = APIRouter(
     prefix='/sqlalkk',
     tags=["sqlalkk"]
 )
 
 
-
 @router.get('/',response_model= List[PostResponse]) #List is used to get list of elements in db in form of json
-def test_p(db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
-    x = db.query(models.Post).all()
-    print(x)
-    if current_user != None:
-        return  x
-    return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Unauthorized")
+def test_p(db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user),limit:int  = 3,skip:int = 0,search:Optional[str]= "" ):
+    print(limit)
+    x = db.query(models.Post).filter(models.Post.content.contains(search)).limit(limit).offset(skip).all() # limit to limit length and offset to skip some starting elements
+    return x
 
 @router.get('/my',response_model= List[PostResponse])
 def get_post(db:Session= Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
@@ -88,7 +86,7 @@ def open(prompt:str):
     max_tokens=100,
     n=1,
     stop=None
-)
+    )
 
     # Extract the generated text from the response
     generated_text = response.choices[0].text.strip()

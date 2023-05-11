@@ -1,7 +1,7 @@
 import time
 from psycopg2.extras import RealDictCursor
 import psycopg2
-
+from .config import settings
 import openai
 
 
@@ -9,7 +9,7 @@ import openai
 while True:
     
     try:
-        conn = psycopg2.connect(host = 'localhost',database='fastapi1',user='abc',password='-',cursor_factory=RealDictCursor)#(host, databatse, user, password,RealDictCursor for obtaining colums of table)
+        conn = psycopg2.connect(host = f'{settings.database_hostname}',database='fastapi1',user=f'{settings.database_username}',password=f'{settings.database_password}',cursor_factory=RealDictCursor)#(host, databatse, user, password,RealDictCursor for obtaining colums of table)
         cursor = conn.cursor()
         print ("Connected")
         break
@@ -19,4 +19,4 @@ while True:
         time.sleep(5)
 
 
-openai.api_key = "sk-14Dv7w1y1STn9mU26IgGtT3BlbkFJ52Yrx01kfhQWT15ksLUrk"
+openai.api_key = "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"
