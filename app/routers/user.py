@@ -16,11 +16,15 @@ def create_user(user:usercreate,db: Session = Depends(get_db)):
     has_password = utils.hash(user.password)
     user.password = has_password
     new_user = models.User(**user.dict())
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
     
-    return new_user
+    
+        return new_user
+    except:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,detail='User already exists')
 
 @router.get('/password/{id}',response_model=userpass)
 def passw(id:int,db: Session = Depends(get_db)):

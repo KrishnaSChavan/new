@@ -1,8 +1,8 @@
-from .. import conn,cursor,openai
+from .. import openai
 from .. import models,auth2
 from fastapi import Response,status,HTTPException,Depends,APIRouter
 from app.schemas import PostCreate,PostResponse
-from app.database import engine,get_db
+from app.database import get_db
 from sqlalchemy.orm import Session
 from typing import Optional,List
 
@@ -21,6 +21,7 @@ def test_p(db: Session = Depends(get_db),current_user:int = Depends(auth2.get_cu
 
 @router.get('/my',response_model= List[PostResponse])
 def get_post(db:Session= Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
+    
     x = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
 
     return x    
