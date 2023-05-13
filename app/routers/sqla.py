@@ -49,14 +49,15 @@ def post_s(post:PostCreate,db: Session = Depends(get_db),current_user:int = Depe
     db.refresh(new_post)
     return  new_post
 
-@router.get('/{id}')
+@router.get('/{id}',response_model=LikePostOut)
 def post_g(id:int,db: Session = Depends(get_db)):
     #post = db.query(models.Post).filter(models.Post.id == id).first()
     posts = db.query(models. Post, func.count(models.Vote.post_id).label("votes")).join(models. Vote, models.Vote.post_id == models.Post. id, isouter=True).group_by(models.Post.id).filter(models.Post.id == id).first()
     print(posts)
     if not posts:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'id {id} not found')
-    return posts[1]
+    pos = {"post": posts[0], "likes": posts[1]}
+    return pos
     
 @router.delete('/{id}',status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id:int,db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
