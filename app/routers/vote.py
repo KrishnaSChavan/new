@@ -3,6 +3,7 @@ from app.database import get_db
 from .. import models,auth2,schemas
 from sqlalchemy.orm import Session
 
+
 router = APIRouter(
     prefix='/vote',
     tags=["LIKE"]

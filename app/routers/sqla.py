@@ -1,11 +1,17 @@
 from .. import openai
 from .. import models,auth2
 from fastapi import Response,status,HTTPException,Depends,APIRouter
-from app.schemas import PostCreate,PostResponse
+from app.schemas import PostCreate,PostResponse,Post,LikePostOut
 from app.database import get_db
 from sqlalchemy.orm import Session
 from typing import Optional,List
+from sqlalchemy import func
 
+def convert_to(dictionary):
+    formatted_list = []
+    for post, vote_count in dictionary:
+        formatted_list.append({"post": post, "likes": vote_count})
+    return formatted_list
 
 router = APIRouter(
     prefix='/sqlalkk',
@@ -13,15 +19,22 @@ router = APIRouter(
 )
 
 
-@router.get('/',response_model= List[PostResponse]) #List is used to get list of elements in db in form of json
-def test_p(db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user),limit:int  = 3,skip:int = 0,search:Optional[str]= "" ):
+@router.get('/',response_model=List[LikePostOut]) #List is used to get list of elements in db in form of json
+def test_p(db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user),limit:int  = 3,skip:int = 0,search:Optional[str]= ""):
     print(limit)
-    x = db.query(models.Post).filter(models.Post.content.contains(search)).limit(limit).offset(skip).all() # limit to limit length and offset to skip some starting elements
-    return x
+    #x = db.query(models.Post).filter(models.Post.content.contains(search)).limit(limit).offset(skip).all() # limit to limit length and offset to skip some starting elements
+    #result = db.query(models.Post,func.count(models.Vote.post_id).label("like")).join(models.Vote,models.Vote.post_id == models.Post.id,isouter=True).group_by(models.Post.id).all()
+    results = db.query(models. Post, func.count(models.Vote.post_id).label("votes")).join(models. Vote, models.Vote.post_id == models.Post. id, isouter=True).group_by(models.Post.id).filter(models.Post.content.contains(search)).limit(limit).offset(skip).all()
+    formatted_results = []
+    for post, vote_count in results:
+        formatted_results.append({"post": post, "likes": vote_count})
+
+    return formatted_results
+    
 
 @router.get('/my',response_model= List[PostResponse])
 def get_post(db:Session= Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
-    
+
     x = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
 
     return x    
@@ -36,13 +49,14 @@ def post_s(post:PostCreate,db: Session = Depends(get_db),current_user:int = Depe
     db.refresh(new_post)
     return  new_post
 
-@router.get('/{id}',response_model=PostResponse)
+@router.get('/{id}')
 def post_g(id:int,db: Session = Depends(get_db)):
-    post = db.query(models.Post).filter(models.Post.id == id).first()
-
-    if not post:
+    #post = db.query(models.Post).filter(models.Post.id == id).first()
+    posts = db.query(models. Post, func.count(models.Vote.post_id).label("votes")).join(models. Vote, models.Vote.post_id == models.Post. id, isouter=True).group_by(models.Post.id).filter(models.Post.id == id).first()
+    print(posts)
+    if not posts:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'id {id} not found')
-    return  post
+    return posts[1]
     
 @router.delete('/{id}',status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id:int,db: Session = Depends(get_db),current_user:int = Depends(auth2.get_current_user)):
@@ -93,3 +107,5 @@ def open(prompt:str):
     generated_text = response.choices[0].text.strip()
 
     return {"generated_text": generated_text}
+
+

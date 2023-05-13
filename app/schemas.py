@@ -15,13 +15,14 @@ class usercreate(BaseModel):
 class userout(BaseModel):
     id: int
     email : EmailStr
+    created_at : datetime
     class Config:
         orm_mode = True
 
 class PostBase(BaseModel):
     title :str
     content :str 
-    published : bool = True
+    published : bool 
 
 
 class PostCreate(PostBase):
@@ -65,3 +66,33 @@ class token_data(BaseModel):
 class Vote(BaseModel):
     post_id: int
     dir: conint(le=1)
+
+
+
+
+
+
+class Post_two(BaseModel):
+    id : int
+    title:str
+    content : str
+    time : datetime
+    published : bool
+    owner_id : int
+    class Config:
+        orm_mode = True
+    
+class Post(BaseModel):
+    post : Post_two
+    likes : int
+
+    class Config:
+        orm_mode = True
+
+
+class LikePostOut(BaseModel):
+    post : PostResponse
+    likes : int
+
+    class Config:
+        orm_mode = True
