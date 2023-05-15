@@ -4,7 +4,7 @@ from app.database import engine
 from app.routers import post,user,sqla,auth,vote
 
 
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine)
 
 
 

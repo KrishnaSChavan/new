@@ -7,6 +7,7 @@ from pydantic.types import conint
 class usercreate(BaseModel):
     email : EmailStr
     password : str
+    phone : int
     class Config:
         orm_mode = True
 
