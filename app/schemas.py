@@ -23,7 +23,8 @@ class userout(BaseModel):
 class PostBase(BaseModel):
     title :str
     content :str 
-    published : bool 
+    published : bool
+    comment : str
 
 
 class PostCreate(PostBase):
