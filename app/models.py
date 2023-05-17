@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 
 class Post(Base):
     __tablename__ = 'post_alch'
-
+    __allow_unmapped__ = True
 
     id = Column(Integer, primary_key=True,nullable=False)
     title = Column(String, nullable=False)
@@ -14,12 +14,12 @@ class Post(Base):
     owner_id = Column(Integer,ForeignKey("users.id",ondelete="Cascade"),nullable=False)
     comment = Column(String,nullable=False)
 
-    owner = relationship("User",)
+    owner = relationship("User")
     
 
 class User(Base):
     __tablename__ = 'users'
-
+    __allow_unmapped__ = True
     id = Column(Integer, primary_key=True,nullable=False)
     email = Column(String, nullable=False,unique=True)
     password = Column(String, nullable=False)
@@ -28,6 +28,16 @@ class User(Base):
     
 
 class Vote(Base):
+    
     __tablename__ = 'votes'
+    __allow_unmapped__ = True
     user_id = Column(Integer,ForeignKey("users.id",ondelete="Cascade"),primary_key=True,nullable=False)
     post_id = Column(Integer, ForeignKey("post_alch.id",ondelete="Cascade"),primary_key=True,nullable=False)
+
+class tab(Base):
+    __tablename__ = 'post'
+    
+    id=Column(Integer,primary_key=True,nullable=False)
+    title= Column(String,nullable=False)
+    content= Column(String,nullable=False)
+    published=Column(Boolean,nullable=False,server_default='TRUE')
