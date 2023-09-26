@@ -5,9 +5,10 @@ from pydantic.types import conint
 
 #take email and password
 class usercreate(BaseModel):
+    name : str
     email : EmailStr
     password : str
-    phone : int
+    
     class Config:
         orm_mode = True
 

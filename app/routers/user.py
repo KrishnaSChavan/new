@@ -16,7 +16,7 @@ def create_user(user:usercreate,db: Session = Depends(get_db)):
     has_password = utils.hash(user.password)
     user.password = has_password
     new_user = models.User(**user.dict())
-    print(new_user.phone)
+    
     
     db.add(new_user)
     db.commit()

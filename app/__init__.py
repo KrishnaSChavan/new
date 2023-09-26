@@ -20,4 +20,3 @@ while True:
 
 
 openai.api_key = settings.api_key
-
